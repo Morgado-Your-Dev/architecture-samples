@@ -48,9 +48,9 @@ class TasksFragment : Fragment() {
 
     private val args: TasksFragmentArgs by navArgs()
 
-    private lateinit var viewDataBinding: TasksFragBinding
+    private var viewDataBinding: TasksFragBinding? = null
 
-    private lateinit var listAdapter: TasksAdapter
+    private lateinit var adapterA: TasksAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,7 +61,7 @@ class TasksFragment : Fragment() {
             viewmodel = viewModel
         }
         setHasOptionsMenu(true)
-        return viewDataBinding.root
+        return viewDataBinding!!.root
     }
 
     override fun onOptionsItemSelected(item: MenuItem) =
@@ -89,30 +89,31 @@ class TasksFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Set the lifecycle owner to the lifecycle of the view
-        viewDataBinding.lifecycleOwner = this.viewLifecycleOwner
-        setupSnackbar()
-        setupListAdapter()
-        setupRefreshLayout(viewDataBinding.refreshLayout, viewDataBinding.tasksList)
-        setupNavigation()
-        setupFab()
-    }
+        viewDataBinding!!.lifecycleOwner = this.viewLifecycleOwner
 
-    private fun setupNavigation() {
+        view?.setupSnackbar(viewLifecycleOwner, viewModel.snackbarText, Snackbar.LENGTH_SHORT)
+        arguments?.let {
+            viewModel.showEditResultMessage(args.userMessage)
+        }
+        val viewModel = viewDataBinding!!.viewmodel
+        if (viewModel != null) {
+            adapterA = TasksAdapter(viewModel)
+            viewDataBinding!!.tasksList.adapter = adapterA
+        } else {
+            Timber.w("ViewModel not initialized when attempting to set up adapter.")
+        }
+        setupRefreshLayout(viewDataBinding!!.refreshLayout, viewDataBinding!!.tasksList)
+
         viewModel.openTaskEvent.observe(viewLifecycleOwner, EventObserver {
             openTaskDetails(it)
         })
         viewModel.newTaskEvent.observe(viewLifecycleOwner, EventObserver {
             navigateToAddNewTask()
         })
+        setupFab()
     }
 
-    private fun setupSnackbar() {
-        view?.setupSnackbar(viewLifecycleOwner, viewModel.snackbarText, Snackbar.LENGTH_SHORT)
-        arguments?.let {
-            viewModel.showEditResultMessage(args.userMessage)
-        }
-    }
-
+    // This method showFilterPopUpMenu
     private fun showFilteringPopUpMenu() {
         val view = activity?.findViewById<View>(R.id.menu_filter) ?: return
         PopupMenu(requireContext(), view).run {
@@ -142,6 +143,7 @@ class TasksFragment : Fragment() {
     }
 
     private fun navigateToAddNewTask() {
+        // set actions by  TasksFragmentDirections
         val action = TasksFragmentDirections
             .actionTasksFragmentToAddEditTaskFragment(
                 null,
@@ -156,12 +158,10 @@ class TasksFragment : Fragment() {
     }
 
     private fun setupListAdapter() {
-        val viewModel = viewDataBinding.viewmodel
-        if (viewModel != null) {
-            listAdapter = TasksAdapter(viewModel)
-            viewDataBinding.tasksList.adapter = listAdapter
-        } else {
-            Timber.w("ViewModel not initialized when attempting to set up adapter.")
-        }
+
     }
+
+
+
+
 }
