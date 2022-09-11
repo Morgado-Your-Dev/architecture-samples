@@ -48,9 +48,9 @@ class TasksFragment : Fragment() {
 
     private val args: TasksFragmentArgs by navArgs()
 
-    private var viewDataBinding: TasksFragBinding? = null
+        private var viewDataBinding: TasksFragBinding? = null
 
-    private lateinit var adapterA: TasksAdapter
+    private lateinit var a: TasksAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -97,8 +97,8 @@ class TasksFragment : Fragment() {
         }
         val viewModel = viewDataBinding!!.viewmodel
         if (viewModel != null) {
-            adapterA = TasksAdapter(viewModel)
-            viewDataBinding!!.tasksList.adapter = adapterA
+            a = TasksAdapter(viewModel)
+            viewDataBinding!!.tasksList.adapter = a
         } else {
             Timber.w("ViewModel not initialized when attempting to set up adapter.")
         }
@@ -110,10 +110,8 @@ class TasksFragment : Fragment() {
         viewModel.newTaskEvent.observe(viewLifecycleOwner, EventObserver {
             navigateToAddNewTask()
         })
-        setupFab()
     }
 
-    // This method showFilterPopUpMenu
     private fun showFilteringPopUpMenu() {
         val view = activity?.findViewById<View>(R.id.menu_filter) ?: return
         PopupMenu(requireContext(), view).run {
